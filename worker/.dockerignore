@@ -1,0 +1,7 @@
+node_modules
+dist
+.env
+.env.local
+sessions
+.git
+.git.nested-created-by-codex
