@@ -41,8 +41,10 @@ export async function startWhatsApp(input: {
   socket.ev.on('connection.update', (update) => {
     void handleConnectionUpdate(update, input, socket);
   });
-  socket.ev.on('messages.upsert', ({ messages }) => {
+  socket.ev.on('messages.upsert', ({ messages, type }) => {
+    console.log(`[messages.upsert] Received ${messages.length} messages, type: ${type}`);
     for (const message of messages) {
+      console.log(`[messages.upsert] Message remoteJid: ${message.key.remoteJid}, fromMe: ${message.key.fromMe}`);
       void handleIncomingMessage({ ...input, socket, message }).catch((error: unknown) => {
         console.error('Inbound message handling failed', error);
       });

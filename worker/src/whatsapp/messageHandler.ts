@@ -16,12 +16,22 @@ export async function handleIncomingMessage(input: {
   memoryService: MemoryService;
 }): Promise<void> {
   const messageKey = input.message.key;
-  if (!messageKey) return;
+  if (!messageKey) {
+    console.log('[handleIncomingMessage] Skipped: no messageKey');
+    return;
+  }
   const remoteJid = messageKey.remoteJid;
   const text = extractMessageText(input.message);
   const phone = remoteJid ? phoneFromJid(remoteJid) : null;
-  if (!remoteJid || !phone || !text || messageKey.fromMe) return;
+  
+  console.log(`[handleIncomingMessage] Parsed message: remoteJid=${remoteJid}, phone=${phone}, hasText=${!!text}, fromMe=${messageKey.fromMe}`);
 
+  if (!remoteJid || !phone || !text || messageKey.fromMe) {
+    console.log('[handleIncomingMessage] Skipped: JID/phone/text invalid, or message is fromMe');
+    return;
+  }
+
+  console.log('[handleIncomingMessage] Saving message to database...');
   const contact = await input.repository.findOrCreateContact(input.userId, phone);
   const conversation = await input.repository.findOrCreateConversation(input.userId, contact.id);
   await input.repository.insertMessage({
@@ -39,7 +49,12 @@ export async function handleIncomingMessage(input: {
     !contact.is_blacklisted &&
     mode !== 'off' &&
     isWithinWorkingHours(settings.working_hours_start, settings.working_hours_end);
-  if (!canReply) return;
+    
+  console.log(`[handleIncomingMessage] bot_enabled=${settings.bot_enabled}, blacklisted=${contact.is_blacklisted}, mode=${mode}, canReply=${canReply}`);
+  if (!canReply) {
+    console.log('[handleIncomingMessage] Auto-reply not allowed by settings.');
+    return;
+  }
 
   const [history, memories] = await Promise.all([
     input.repository.getConversationHistory(conversation.id),
