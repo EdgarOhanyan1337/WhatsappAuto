@@ -1,0 +1,9 @@
+.env
+.env.local
+node_modules/
+.tools/
+worker/.git.nested-created-by-codex/
+dist/
+coverage/
+sessions/
+supabase/.temp/
